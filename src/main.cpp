@@ -2,6 +2,10 @@
 #include <LiquidCrystal.h>
 #include <Wire.h>
 
+//#define PULSELOW      // uncomment if speed value returns too large
+//#define SQUAREWAVE    // uncomment if speed impulse is too large
+#include "motorcontrol.h"
+
 #define DATA4 D0
 #define DATA5 D1
 #define DATA6 D2
@@ -11,6 +15,9 @@
 
 #define ENCODER_CLK D6
 #define ENCODER_DATA D7
+
+#define MOTOR_CONTROL A0
+#define MOTOR_SPEED D7 /* TODO: find available pin to read motor encoder pulses */
 
 #define BUTTON D8
 
@@ -48,6 +55,10 @@ void setup()
   display.print("sup bitch");
   display.setCursor(0, 1);
   display.print("<>,./?!@#$%^&*()");
+
+  // motor control setup
+  compressorControl motor;
+  motor.setPins(MOTOR_CONTROL, MOTOR_SPEED);
 }
 
 void loop()
