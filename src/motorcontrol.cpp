@@ -34,14 +34,13 @@ unsigned int compressorControl::readspeed()
     return speed;
 }
 
-bool compressorControl::setSpeed(const unsigned int &inputSpeed)
+bool compressorControl::setSpeed(const float &inputSpeed)
 {
     if (this->pinSet)
     {
         return false;
     }
-    float dutyCycle = (float)inputSpeed / 35000; // Assumed 35,000 rpm at 100% duty cycle
-    unsigned char output = 255 * dutyCycle;
+    unsigned char output = 255 * inputSpeed;
     analogWrite(this->MOTOR_CONTROL_PIN, output);
     return true;
 }

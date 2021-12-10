@@ -6,7 +6,7 @@ class compressorControl
 {
 public:
 unsigned int readspeed();
-bool setSpeed(const unsigned int& inputSpeed);
+bool setSpeed(const float& inputSpeed);
 bool setPins(const PIN& controlPin, const PIN& pulsePin);
 private:
 PIN MOTOR_CONTROL_PIN = 0;

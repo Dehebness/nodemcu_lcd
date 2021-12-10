@@ -2,8 +2,7 @@
 #include <LiquidCrystal.h>
 #include <Wire.h>
 
-//#define PULSELOW      // uncomment if speed value returns too large
-//#define SQUAREWAVE    // uncomment if speed impulse is too large
+#define SQUAREWAVE // uncomment if speed impulse is too large
 #include "motorcontrol.h"
 
 #define DATA4 D0
@@ -13,23 +12,24 @@
 #define REGISTER_SELECT D4
 #define ENABLE D5
 
-#define ENCODER_CLK D6
+#define ENCODER_CLK A0
 #define ENCODER_DATA D7
 
 #define MOTOR_CONTROL A0
-#define MOTOR_SPEED D7 /* TODO: find available pin to read motor encoder pulses */
+#define MOTOR_SPEED D9 /* TODO: find available pin to read motor encoder pulses */
 
 #define BUTTON D8
 
-# define SPEED_OUTPUT D9
-
 LiquidCrystal display(REGISTER_SELECT, ENABLE, DATA4, DATA5, DATA6, DATA7);
 
-int counter = 0;
+int bigCount = 0;
+int smallCount = 0;
 int currentStateClock;
 int previousStateClock;
 int currentButtonState;
 int previousButtonState;
+
+compressorControl motor;
 
 String encoderDirection = "";
 
@@ -59,7 +59,6 @@ void setup()
   display.print("Set speed.");
 
   // motor control setup
-  compressorControl motor;
   motor.setPins(MOTOR_CONTROL, MOTOR_SPEED);
 }
 
@@ -70,12 +69,18 @@ void loop()
   if (currentButtonState == LOW && previousButtonState == HIGH)
   {
     Serial.print("HERE");
-    counter = 0;
+    smallCount = 0;
+    bigCount = 0;
     clearLine(1);
     display.setCursor(0, 1);
     display.print("Val: ");
     display.setCursor(5, 1);
-    display.print(String(counter));
+
+    String valueString(bigCount);
+    valueString += '.';
+    valueString += smallCount;
+    valueString += " %";
+    display.print(valueString);
   }
 
   currentStateClock = digitalRead(ENCODER_CLK);
@@ -83,29 +88,49 @@ void loop()
   {
     if (digitalRead(ENCODER_DATA) != currentStateClock)
     {
-      counter--;
+      smallCount--;
       encoderDirection = "Counter Clockwise";
     }
     else
     {
-      counter++;
+      smallCount++;
       encoderDirection = "Clockwise";
     }
     clearLine(1);
     display.setCursor(0, 1);
     display.print("Val: ");
     display.setCursor(5, 1);
-    display.print(String(counter));
+    String valueString(bigCount);
+    valueString += '.';
+    valueString += smallCount;
+    valueString += " %";
+    display.print(valueString);
   }
 
-  int led_brightness = counter;
-  if (led_brightness < 1) {
-    led_brightness = 1;
+  if (smallCount < 0)
+  {
+    if (bigCount == 0)
+    {
+      smallCount = 0;
+    }
+    else
+    {
+      bigCount--;
+      smallCount = 9;
+    }
   }
-  else if (led_brightness > 254) {
-    led_brightness = 254;
+  else if (smallCount > 9)
+  {
+    smallCount = 0;
+    bigCount++;
   }
-  analogWrite(SPEED_OUTPUT, 255 - led_brightness);
+
+  if (bigCount == 100 && smallCount > 0)
+  {
+    smallCount = 0;
+  }
+
+  motor.setSpeed((float)bigCount + ((float)smallCount / 10) / 100);
 
   previousStateClock = currentStateClock;
   previousButtonState = currentButtonState;
