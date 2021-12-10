@@ -21,6 +21,8 @@
 
 #define BUTTON D8
 
+# define SPEED_OUTPUT D9
+
 LiquidCrystal display(REGISTER_SELECT, ENABLE, DATA4, DATA5, DATA6, DATA7);
 
 int counter = 0;
@@ -52,9 +54,9 @@ void setup()
 
   display.begin(16, 2);
   display.setCursor(0, 0);
-  display.print("sup bitch");
+  display.print("Use encoder.");
   display.setCursor(0, 1);
-  display.print("<>,./?!@#$%^&*()");
+  display.print("Set speed.");
 
   // motor control setup
   compressorControl motor;
@@ -95,6 +97,16 @@ void loop()
     display.setCursor(5, 1);
     display.print(String(counter));
   }
+
+  int led_brightness = counter;
+  if (led_brightness < 1) {
+    led_brightness = 1;
+  }
+  else if (led_brightness > 254) {
+    led_brightness = 254;
+  }
+  analogWrite(SPEED_OUTPUT, 255 - led_brightness);
+
   previousStateClock = currentStateClock;
   previousButtonState = currentButtonState;
 
